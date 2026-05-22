@@ -33,8 +33,14 @@ output "nic_names" {
 
 output "ssh_commands" {
   description = "Map of NIC key (<vm-name>-<nic-name>) to ready-to-use SSH command (only NICs with a public IP)."
+  // Build the SSH command using the admin username from var.vms and the public IP address from azurerm_public_ip.main. 
+  // Only include NICs that have assign_public_ip = true.
+  // The identity file path is intentionally left as a placeholder rather than sourced from a variable.
+  // Accepting a file path as input would cause it to appear in Terraform state, plan output, and logs — making it easy to accidentally 
+  // expose where your private keys live. Fill in the path yourself after copying the command.
+  // Also, a separate variable for the path that is only used here is unnecessary complexity, so just keep it simple (KISS).
   value = {
-    for k, v in local.nics : k => "ssh ${var.vms[v.vm_name].admin_username}@${azurerm_public_ip.main[k].ip_address}"
+    for k, v in local.nics : k => "ssh -i <path/to/private/key> ${var.vms[v.vm_name].admin_username}@${azurerm_public_ip.main[k].ip_address}"
     if v.assign_public_ip
   }
 }

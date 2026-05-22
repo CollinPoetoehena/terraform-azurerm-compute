@@ -1,6 +1,6 @@
-# terraform-azurerm-compute
+# devhub-terraform-azurerm-compute
 
-> Part of [dev-hub/Terraform](https://github.com/CollinPoetoehena/dev-hub/blob/main/Terraform.md) — see that file for conventions, structure guidelines, and the full module index.
+> Part of [DevHub/Terraform](https://github.com/CollinPoetoehena/DevHub/blob/main/packages/Terraform.md) — see that file for conventions, structure guidelines, and the full module index.
 
 Terraform module that creates compute resources in Azure — Linux VMs, NICs, and public IPs.
 
@@ -15,7 +15,7 @@ The `azurerm` provider must be configured by the root module before calling this
 
 ## Design
 
-- **Separate from networking and depends on it.** This module is intentionally split from `terraform-azurerm-network`. Compute resources (VMs, NICs, public IPs) always depend on an existing network — subnet IDs must be provided via `vms[*].nics[*].subnet_id` before Terraform can attach a NIC. By keeping compute separate, VMs can be created, updated, or destroyed without touching the network layer, and the network can be managed independently. Always apply `terraform-azurerm-network` (or a different network module) first, then wire its `subnet_ids` output into the `vms` variable of this module (e.g. `subnet_id = module.network.subnet_ids["my-subnet"]`).
+- **Separate from networking and depends on it.** This module is intentionally split from `devhub-terraform-azurerm-network`. Compute resources (VMs, NICs, public IPs) always depend on an existing network — subnet IDs must be provided via `vms[*].nics[*].subnet_id` before Terraform can attach a NIC. By keeping compute separate, VMs can be created, updated, or destroyed without touching the network layer, and the network can be managed independently. Always apply `devhub-terraform-azurerm-network` (or a different network module) first, then wire its `subnet_ids` output into the `vms` variable of this module (e.g. `subnet_id = module.network.subnet_ids["my-subnet"]`).
 
 - **`vms` map is the single source of truth for VM definitions.** Everything needed to define a VM — size, credentials, NICs, image, and OS disk — lives inside the `vms` map so each VM is fully self-contained. The only variables outside `vms` are `location`, `resource_group_name`, and `tags`: these are pure infrastructure context that applies to every resource the module creates, not to any single VM. This way the module is easy to use and understand, and adding a new VM is as simple as adding a new entry to the `vms` map. The alternative is to add more variables outside the `vms` map for each aspect of the VM definition (e.g. a separate variable for NIC definitions, another for image definitions, etc.) and then require the user to correlate these with the correct VM via some key or index. This adds unnecessary complexity and indirection without any real benefit, since all the information needed to define a VM is already available at the time of defining the VM in the `vms` map. Therefore, the `vms` map is the single source of truth for VM definitions, and all related information (including NICs) is nested within it for clarity and ease of use. This does have the drawback of having to add some additional computations/formatting in `locals.tf` to produce the final flattened maps needed for resource creation and outputs, but this is a small price to pay for the improved usability and maintainability of the module interface.
 
@@ -24,7 +24,7 @@ The `azurerm` provider must be configured by the root module before calling this
 - **Flat module — no submodules.** All resources live in a single `main.tf` with comment blocks separating each logical section.
 
 ```
-terraform-azurerm-compute/
+devhub-terraform-azurerm-compute/
 ├── main.tf       # All compute resources (public IPs, NICs, Linux VMs)
 ├── variables.tf  # All input variables
 ├── outputs.tf    # All outputs
@@ -46,7 +46,7 @@ Leave `vms` as `{}` to skip all VM creation.
 
 ```hcl
 module "compute" {
-  source = "git::https://github.com/CollinPoetoehena/terraform-azurerm-compute.git?ref=v1.0.0"
+  source = "git::https://github.com/CollinPoetoehena/devhub-terraform-azurerm-compute.git?ref=1.0.1"
 
   resource_group_name = "my-rg"
   location            = "westeurope"

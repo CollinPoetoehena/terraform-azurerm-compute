@@ -26,7 +26,7 @@ variable "tags" {
 // Every property needed to fully define a VM lives here — no shared per-VM config outside this variable.
 // Only infrastructure context (location, resource group, tags) is expressed as separate variables.
 // Subnet IDs (nics[*].subnet_id) are provided by the caller — typically from the outputs of the
-// terraform-azurerm-network module (e.g. module.network.subnet_ids["my-subnet"]).
+// devhub-terraform-azurerm-network module (e.g. module.network.subnet_ids["my-subnet"]).
 variable "vms" {
   description = "Map of VMs to create. Key is the VM name."
   type = map(object({
